@@ -9,7 +9,6 @@ import com.github.sikv.photos.domain.Photo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.firstOrNull
 import toDTO
-import toDomain
 import javax.inject.Inject
 
 private val Context.curatedPhotosStore : DataStore<PhotosDTO> by dataStore(
@@ -18,13 +17,19 @@ private val Context.curatedPhotosStore : DataStore<PhotosDTO> by dataStore(
 )
 
 class CuratedPhotosCache @Inject constructor(
-    @ApplicationContext val context: Context
+    @param:ApplicationContext val context: Context,
+    private val photosCache: PhotosCache
 ) {
     private val curatedPhotosStore: DataStore<PhotosDTO> = context.curatedPhotosStore
 
     suspend fun getPhotos(): List<Photo> {
         val photosDTO = curatedPhotosStore.data.firstOrNull()
-        return photosDTO?.toDomain() ?: emptyList()
+
+        return photosDTO?.photosList
+            ?.map { photoDTO -> photoDTO.id }
+            ?.mapNotNull { photoId ->
+                photosCache.getById(photoId)
+            } ?: emptyList()
     }
 
     suspend fun update(photos: List<Photo>) {
@@ -32,6 +37,7 @@ class CuratedPhotosCache @Inject constructor(
             curatedPhotosStore.updateData {
                 photos.toDTO()
             }
+            photosCache.insertAll(photos)
         } catch (e: Exception) {
             e.printStackTrace()
         }

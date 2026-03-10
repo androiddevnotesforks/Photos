@@ -1,64 +1,83 @@
 package com.github.sikv.photos.data.repository.impl
 
 import com.github.sikv.photos.data.SortBy
-import com.github.sikv.photos.data.persistence.FavoritePhotoEntity
-import com.github.sikv.photos.data.persistence.FavoritesDao
-import com.github.sikv.photos.data.persistence.FavoritesDbQueryBuilder
+import com.github.sikv.photos.data.cache.PhotosCache
+import com.github.sikv.photos.data.persistence.favorites.FavoritePhotosDao
+import com.github.sikv.photos.data.persistence.favorites.FavoritePhotosDbQueryBuilder
 import com.github.sikv.photos.data.repository.FavoritesRepository2
+import com.github.sikv.photos.data.repository.PhotosRepository
 import com.github.sikv.photos.domain.Photo
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.map
+import toFavoritePhotoEntity
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class FavoritesRepository2Impl @Inject constructor(
-    private val favoritesDao: FavoritesDao,
-    private val queryBuilder: FavoritesDbQueryBuilder
+    private val favoritePhotosDao: FavoritePhotosDao,
+    private val queryBuilder: FavoritePhotosDbQueryBuilder,
+    private val photosRepository: PhotosRepository,
+    private val photosCache: PhotosCache
 ) : FavoritesRepository2 {
 
-    override suspend fun isFavorite(photo: Photo): Boolean =
-        withContext(Dispatchers.IO) {
-            favoritesDao.getById(photo.getPhotoId()) != null
-        }
+    override suspend fun isFavorite(photo: Photo): Boolean {
+        return favoritePhotosDao.getById(photo.getPhotoId()) != null
+    }
 
     override suspend fun invertFavorite(photo: Photo) {
-        withContext(Dispatchers.IO) {
-            val favorite = !isFavorite(photo)
-            val favoritePhoto = FavoritePhotoEntity.fromPhoto(photo)
-
-            if (favorite) {
-                favoritesDao.insert(favoritePhoto)
-            } else {
-                favoritesDao.delete(favoritePhoto)
-            }
+        val favorite = isFavorite(photo)
+        if (favorite) {
+            favoritePhotosDao.delete(photo.toFavoritePhotoEntity())
+        } else {
+            favoritePhotosDao.insert(photo.toFavoritePhotoEntity())
+            photosCache.insert(photo)
         }
     }
 
-    override fun getFavorites(sortBy: SortBy): Flow<List<FavoritePhotoEntity>> {
+    override fun getFavorites(sortBy: SortBy): Flow<List<Photo>> {
         val query = queryBuilder.buildGetPhotosQuery(sortBy)
-        return favoritesDao.getPhotos(query)
+
+        return favoritePhotosDao
+            .getPhotos(query)
+            .map { favoriteList ->
+                // TODO: Optimize this.
+                favoriteList.mapNotNull { favoritePhoto ->
+                    photosRepository.getPhoto(
+                        id = favoritePhoto.id,
+                        source = favoritePhoto.source
+                    ).resultOrNull()
+                }
+            }
     }
 
-    override fun getRandom(): FavoritePhotoEntity? = favoritesDao.getRandom()
+    override suspend fun getRandom(): Photo? {
+        val randomFavorite = favoritePhotosDao.getRandom() ?: return null
 
-    override suspend fun markAllAsDeleted(): Boolean = withContext(Dispatchers.IO) {
-        val count = favoritesDao.getCount()
+        return photosRepository
+            .getPhoto(
+                id = randomFavorite.id,
+                source = randomFavorite.source
+            )
+            .resultOrNull()
+    }
 
-        if (count > 0) {
-            favoritesDao.markAllAsDeleted()
+    override suspend fun markAllAsDeleted(): Boolean {
+        val count = favoritePhotosDao.getCount()
+
+        return if (count > 0) {
+            favoritePhotosDao.markAllAsDeleted()
             true
         } else {
             false
         }
     }
 
-    override suspend fun unmarkAllAsDeleted() = withContext(Dispatchers.IO) {
-        favoritesDao.unmarkAllAsDeleted()
+    override suspend fun unmarkAllAsDeleted() {
+        favoritePhotosDao.unmarkAllAsDeleted()
     }
 
-    override suspend fun deleteAllMarked() = withContext(Dispatchers.IO) {
-        favoritesDao.deleteAllMarked()
+    override suspend fun deleteAllMarked() {
+        favoritePhotosDao.deleteAllMarked()
     }
 }

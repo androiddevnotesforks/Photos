@@ -3,6 +3,7 @@ package com.github.sikv.photos.data.repository.impl
 import com.github.sikv.photos.api.client.ApiClient
 import com.github.sikv.photos.data.Result
 import com.github.sikv.photos.data.cache.CuratedPhotosCache
+import com.github.sikv.photos.data.cache.PhotosCache
 import com.github.sikv.photos.data.repository.PhotosRepository
 import com.github.sikv.photos.domain.Photo
 import com.github.sikv.photos.domain.PhotoSource
@@ -11,14 +12,34 @@ import javax.inject.Inject
 class PhotosRepositoryImpl @Inject constructor(
     private val apiClient: ApiClient,
     private val curatedPhotosCache: CuratedPhotosCache,
+    private val photosCache: PhotosCache
 ) : PhotosRepository {
 
-    override suspend fun getPhoto(id: String, source: PhotoSource): Photo? {
-        return when (source) {
-            PhotoSource.PEXELS -> apiClient.pexelsClient.getPhoto(id)
-            PhotoSource.UNSPLASH -> apiClient.unsplashClient.getPhoto(id)
-            PhotoSource.PIXABAY -> apiClient.pixabayClient.getPhoto(id).hits.firstOrNull()
-            PhotoSource.UNSPECIFIED -> throw NotImplementedError()
+    /**
+     * Uses Cache First caching strategy.
+     */
+    override suspend fun getPhoto(id: String, source: PhotoSource): Result<Photo> {
+        val cachedPhoto = photosCache.getById(id)
+
+        if (cachedPhoto != null) {
+            return Result.Success(cachedPhoto)
+        } else {
+            try {
+                val photo = when (source) {
+                    PhotoSource.PEXELS -> apiClient.pexelsClient.getPhoto(id)
+                    PhotoSource.UNSPLASH -> apiClient.unsplashClient.getPhoto(id)
+                    PhotoSource.PIXABAY -> apiClient.pixabayClient.getPhoto(id).hits.firstOrNull()
+                    PhotoSource.UNSPECIFIED -> null
+                }
+                return if (photo != null) {
+                    photosCache.insert(photo)
+                    Result.Success(photo)
+                } else {
+                    Result.Error(Exception("PhotoSource is UNSPECIFIED"))
+                }
+            } catch (e: Exception) {
+                return Result.Error(e)
+            }
         }
     }
 

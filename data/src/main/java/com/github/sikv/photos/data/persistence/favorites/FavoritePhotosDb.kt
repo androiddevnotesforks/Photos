@@ -1,8 +1,9 @@
-package com.github.sikv.photos.data.persistence
+package com.github.sikv.photos.data.persistence.favorites
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.github.sikv.photos.data.persistence.Converters
 
 @Database(
     entities = [FavoritePhotoEntity::class],
@@ -10,7 +11,6 @@ import androidx.room.TypeConverters
     exportSchema = false
 )
 @TypeConverters(Converters::class)
-abstract class FavoritesDb : RoomDatabase() {
-
-    abstract val favoritesDao: FavoritesDao
+abstract class FavoritePhotosDb : RoomDatabase() {
+    abstract val favoritePhotosDao: FavoritePhotosDao
 }
