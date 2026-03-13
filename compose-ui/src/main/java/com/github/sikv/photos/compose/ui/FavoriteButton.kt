@@ -10,7 +10,9 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -26,20 +28,30 @@ fun FavoriteButton(
     isFavorite: Boolean,
     onToggleFavorite: () -> Unit
 ) {
+    var initialized by remember { mutableStateOf(false) }
+
     val scale = remember { Animatable(1.0f) }
     val offsetX = remember { Animatable(0f) }
 
     LaunchedEffect(isFavorite) {
+        if (!initialized) {
+            initialized = true
+            return@LaunchedEffect
+        }
+
+        scale.stop()
+        offsetX.stop()
+
         if (isFavorite) {
             scale.animateTo(
-                targetValue = 1.3f,
-                animationSpec = tween(favoriteAnimationDuration, easing = LinearEasing)
-            )
-            scale.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(favoriteAnimationDuration, easing = LinearEasing)
+                1f,
+                keyframes {
+                    durationMillis = favoriteAnimationDuration * 2
+                    1.3f at favoriteAnimationDuration
+                }
             )
         } else {
+            offsetX.snapTo(0f)
             // Source: https://ophilia.in/creating-a-wiggle-animation-in-jetpack-compose
             offsetX.animateTo(
                 targetValue = 0f,
@@ -50,7 +62,7 @@ fun FavoriteButton(
                             1 -> -2f
                             else -> 0f
                         }
-                        x at unFavoriteAnimationDuration / 10 * i with LinearEasing
+                        x at unFavoriteAnimationDuration / 10 * i using LinearEasing
                     }
                 }
             )
