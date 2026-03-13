@@ -1,6 +1,6 @@
 package com.github.sikv.photos.data.repository
 
-import com.github.sikv.photos.data.repository.impl.FavoritesRepository2Impl
+import com.github.sikv.photos.data.repository.impl.FavoritesRepositoryImpl
 import com.github.sikv.photos.data.repository.impl.PhotosRepositoryImpl
 import dagger.Binds
 import dagger.Module
@@ -15,5 +15,5 @@ abstract class RepositoryModule {
     abstract fun bindPhotosRepository(photosRepository: PhotosRepositoryImpl): PhotosRepository
 
     @Binds
-    abstract fun bindFavorites2Repository(favoritesRepository: FavoritesRepository2Impl): FavoritesRepository2
+    abstract fun bindFavoritesRepository(favoritesRepository: FavoritesRepositoryImpl): FavoritesRepository
 }

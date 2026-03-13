@@ -7,7 +7,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.github.sikv.photos.config.ConfigProvider
-import com.github.sikv.photos.data.repository.FavoritesRepository2
+import com.github.sikv.photos.data.repository.FavoritesRepository
 import com.github.sikv.photos.data.repository.PhotosRepository
 import com.github.sikv.photos.domain.ListLayout
 import com.github.sikv.photos.domain.Photo
@@ -18,7 +18,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,12 +26,14 @@ import javax.inject.Inject
 internal class SearchViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val photosRepository: PhotosRepository,
-    private val favoritesRepository: FavoritesRepository2,
+    private val favoritesRepository: FavoritesRepository,
     private val configProvider: ConfigProvider
 ) : ViewModel() {
 
     private val mutableUiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> = mutableUiState
+
+    val favoritesFlow = favoritesRepository.getFavoritesSet()
 
     init {
         val args = savedStateHandle.fragmentArguments<SearchFragmentArguments>()
@@ -43,13 +44,6 @@ internal class SearchViewModel @Inject constructor(
                 photoSources = configProvider.getSearchSources()
             )
         }
-    }
-
-    fun isFavorite(photo: Photo): Flow<Boolean> {
-        return favoritesRepository.getFavorites()
-            .map { photos ->
-                photos.contains(photo)
-            }
     }
 
     fun toggleFavorite(photo: Photo) {

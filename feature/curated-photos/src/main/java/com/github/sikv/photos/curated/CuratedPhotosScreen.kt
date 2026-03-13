@@ -11,7 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -32,9 +32,10 @@ internal fun CuratedPhotosScreen(
     onDownloadPhotoClick: (Photo) -> Unit,
     viewModel: CuratedPhotosViewModel = hiltViewModel(),
 ) {
-    val photos = viewModel.curatedPhotos.collectAsLazyPagingItems()
+    val photos = viewModel.curatedPhotosFlow.collectAsLazyPagingItems()
     val loadState = photos.loadState.refresh
 
+    val favorites by viewModel.favoritesFlow.collectAsStateWithLifecycle(emptySet())
     val listLayout by viewModel.listLayoutState.collectAsStateWithLifecycle()
 
     Scaffold(
@@ -74,12 +75,9 @@ internal fun CuratedPhotosScreen(
                 ) {
                     items(photos.itemCount) { index ->
                         photos[index]?.let { photo ->
-                            val isFavorite by viewModel.isFavorite(photo)
-                                .collectAsStateWithLifecycle(initialValue = false)
-
                             DynamicPhotoItem(
                                 photo = photo,
-                                isFavorite = isFavorite,
+                                favorites = favorites,
                                 listLayout = listLayout,
                                 onPhotoClick = onPhotoClick,
                                 onPhotoAttributionClick = onPhotoAttributionClick,

@@ -3,7 +3,7 @@ package com.github.sikv.photos.photo.details
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.sikv.photos.data.repository.FavoritesRepository2
+import com.github.sikv.photos.data.repository.FavoritesRepository
 import com.github.sikv.photos.navigation.args.PhotoDetailsFragmentArguments
 import com.github.sikv.photos.navigation.args.fragmentArguments
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class PhotoDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val favoritesRepository: FavoritesRepository2
+    private val favoritesRepository: FavoritesRepository
 ) : ViewModel() {
 
     private val mutableUiState: MutableStateFlow<PhotoUiState>

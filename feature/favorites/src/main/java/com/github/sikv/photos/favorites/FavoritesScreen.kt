@@ -27,6 +27,7 @@ import com.github.sikv.photos.compose.ui.DynamicPhotoItem
 import com.github.sikv.photos.compose.ui.NoContent
 import com.github.sikv.photos.compose.ui.Scaffold
 import com.github.sikv.photos.compose.ui.SwitchLayoutAction
+import com.github.sikv.photos.domain.ListLayout
 import com.github.sikv.photos.domain.Photo
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
@@ -96,12 +97,8 @@ internal fun FavoritesScreen(
                 items(uiState.photos.size) { index ->
                     val photo = uiState.photos[index]
 
-                    val isFavorite by viewModel.isFavorite(photo)
-                        .collectAsStateWithLifecycle(initialValue = false)
-
-                    DynamicPhotoItem(
+                    FavoritePhotoItem(
                         photo = photo,
-                        isFavorite = isFavorite,
                         listLayout = uiState.listLayout,
                         onPhotoClick = onPhotoClick,
                         onPhotoAttributionClick = onPhotoAttributionClick,
@@ -114,6 +111,30 @@ internal fun FavoritesScreen(
             }
         }
     }
+}
+
+@Composable
+fun FavoritePhotoItem(
+    photo: Photo,
+    listLayout: ListLayout,
+    onPhotoClick: (Photo) -> Unit,
+    onPhotoAttributionClick: (Photo) -> Unit,
+    onPhotoActionsClick: (Photo) -> Unit,
+    onToggleFavoriteClick: (Photo) -> Unit,
+    onSharePhotoClick: (Photo) -> Unit,
+    onDownloadPhotoClick: (Photo) -> Unit
+) {
+    DynamicPhotoItem(
+        photo = photo,
+        favorites = setOf(photo.getPhotoId()), // All photos in the Favorites screen are favorites, so we can pass a set containing only the current photo ID.
+        listLayout = listLayout,
+        onPhotoClick = onPhotoClick,
+        onPhotoAttributionClick = onPhotoAttributionClick,
+        onPhotoActionsClick = onPhotoActionsClick,
+        onToggleFavoriteClick = onToggleFavoriteClick,
+        onSharePhotoClick = onSharePhotoClick,
+        onDownloadPhotoClick = onDownloadPhotoClick
+    )
 }
 
 @Composable

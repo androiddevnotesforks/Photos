@@ -14,13 +14,10 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
@@ -46,11 +43,10 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -78,6 +74,8 @@ internal fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val favorites by viewModel.favoritesFlow.collectAsStateWithLifecycle(emptySet())
 
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { uiState.photoSources.size })
@@ -119,6 +117,7 @@ internal fun SearchScreen(
             SearchContent(
                 pagerState = pagerState,
                 uiState = uiState,
+                favorites = favorites,
                 onPhotoClick = onPhotoClick,
                 onPhotoAttributionClick = onPhotoAttributionClick,
                 onPhotoActionsClick = onPhotoActionsClick,
@@ -207,6 +206,7 @@ private fun TopBar(
 private fun SearchContent(
     pagerState: PagerState,
     uiState: SearchUiState,
+    favorites: Set<String>,
     onPhotoClick: (Photo) -> Unit,
     onPhotoAttributionClick: (Photo) -> Unit,
     onPhotoActionsClick: (Photo) -> Unit,
@@ -227,6 +227,7 @@ private fun SearchContent(
                 is LoadState.NotLoading -> Photos(
                     listLayout = uiState.listLayout,
                     photos = photos,
+                    favorites = favorites,
                     onPhotoClick = onPhotoClick,
                     onPhotoAttributionClick = onPhotoAttributionClick,
                     onPhotoActionsClick = onPhotoActionsClick,
@@ -243,6 +244,7 @@ private fun SearchContent(
 private fun Photos(
     listLayout: ListLayout,
     photos: LazyPagingItems<Photo>,
+    favorites: Set<String>,
     onPhotoClick: (Photo) -> Unit,
     onPhotoAttributionClick: (Photo) -> Unit,
     onPhotoActionsClick: (Photo) -> Unit,
@@ -258,12 +260,10 @@ private fun Photos(
         ) {
             items(photos.itemCount) { index ->
                 photos[index]?.let { photo ->
-                    val isFavorite by viewModel.isFavorite(photo)
-                        .collectAsStateWithLifecycle(initialValue = false)
 
                     DynamicPhotoItem(
                         photo = photo,
-                        isFavorite = isFavorite,
+                        favorites = favorites,
                         listLayout = listLayout,
                         onPhotoClick = onPhotoClick,
                         onPhotoAttributionClick = onPhotoAttributionClick,

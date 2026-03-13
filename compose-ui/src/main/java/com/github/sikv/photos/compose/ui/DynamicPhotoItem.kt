@@ -1,13 +1,14 @@
 package com.github.sikv.photos.compose.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import com.github.sikv.photos.domain.ListLayout
 import com.github.sikv.photos.domain.Photo
 
 @Composable
 fun DynamicPhotoItem(
     photo: Photo,
-    isFavorite: Boolean,
+    favorites: Set<String>,
     listLayout: ListLayout,
     onPhotoClick: (Photo) -> Unit,
     onPhotoAttributionClick: (Photo) -> Unit,
@@ -16,11 +17,16 @@ fun DynamicPhotoItem(
     onSharePhotoClick: (Photo) -> Unit,
     onDownloadPhotoClick: (Photo) -> Unit
 ) {
+
+    val favorite = remember(favorites, photo.getPhotoId()) {
+        favorites.contains(photo.getPhotoId())
+    }
+
     when (listLayout) {
         ListLayout.LIST -> {
             PhotoItem(
                 photo = photo,
-                isFavorite = isFavorite,
+                isFavorite = favorite,
                 onClick = {
                     onPhotoClick(photo)
                 },

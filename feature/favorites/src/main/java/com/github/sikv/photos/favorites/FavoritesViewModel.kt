@@ -7,14 +7,12 @@ import androidx.lifecycle.viewModelScope
 import com.github.sikv.photos.common.PreferencesService
 import com.github.sikv.photos.common.ui.OptionsBottomSheetDialog
 import com.github.sikv.photos.data.SortBy
-import com.github.sikv.photos.data.repository.FavoritesRepository2
+import com.github.sikv.photos.data.repository.FavoritesRepository
 import com.github.sikv.photos.domain.ListLayout
 import com.github.sikv.photos.domain.Photo
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,7 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class FavoritesViewModel @Inject constructor(
     application: Application,
-    private val favoritesRepository: FavoritesRepository2,
+    private val favoritesRepository: FavoritesRepository,
     private val preferencesService: PreferencesService
 ) : AndroidViewModel(application) {
 
@@ -39,13 +37,6 @@ internal class FavoritesViewModel @Inject constructor(
 
     init {
         emitFavorites()
-    }
-
-    fun isFavorite(photo: Photo): Flow<Boolean> {
-        return favoritesRepository.getFavorites()
-            .map { photos ->
-                photos.contains(photo)
-            }
     }
 
     fun toggleFavorite(photo: Photo) {

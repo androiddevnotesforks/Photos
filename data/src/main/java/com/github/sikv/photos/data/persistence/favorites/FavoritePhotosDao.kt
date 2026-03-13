@@ -19,6 +19,9 @@ interface FavoritePhotosDao {
     @RawQuery(observedEntities = [FavoritePhotoEntity::class])
     fun getPhotos(query: SupportSQLiteQuery): Flow<List<FavoritePhotoEntity>>
 
+    @Query("SELECT id FROM ${DbConfig.FAVORITE_PHOTOS_TABLE} WHERE markedAsDeleted=0")
+    fun getIds(): Flow<List<String>>
+
     @Query("SELECT * FROM ${DbConfig.FAVORITE_PHOTOS_TABLE} WHERE id=:id AND markedAsDeleted=0")
     suspend fun getById(id: String): FavoritePhotoEntity?
 

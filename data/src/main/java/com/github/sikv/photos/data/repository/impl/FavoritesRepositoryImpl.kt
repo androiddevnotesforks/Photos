@@ -4,7 +4,7 @@ import com.github.sikv.photos.data.SortBy
 import com.github.sikv.photos.data.cache.PhotosCache
 import com.github.sikv.photos.data.persistence.favorites.FavoritePhotosDao
 import com.github.sikv.photos.data.persistence.favorites.FavoritePhotosDbQueryBuilder
-import com.github.sikv.photos.data.repository.FavoritesRepository2
+import com.github.sikv.photos.data.repository.FavoritesRepository
 import com.github.sikv.photos.data.repository.PhotosRepository
 import com.github.sikv.photos.domain.Photo
 import kotlinx.coroutines.flow.Flow
@@ -14,12 +14,12 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class FavoritesRepository2Impl @Inject constructor(
+class FavoritesRepositoryImpl @Inject constructor(
     private val favoritePhotosDao: FavoritePhotosDao,
     private val queryBuilder: FavoritePhotosDbQueryBuilder,
     private val photosRepository: PhotosRepository,
     private val photosCache: PhotosCache
-) : FavoritesRepository2 {
+) : FavoritesRepository {
 
     override suspend fun isFavorite(photo: Photo): Boolean {
         return favoritePhotosDao.getById(photo.getPhotoId()) != null
@@ -49,6 +49,10 @@ class FavoritesRepository2Impl @Inject constructor(
                     ).resultOrNull()
                 }
             }
+    }
+
+    override fun getFavoritesSet(): Flow<Set<String>> {
+        return favoritePhotosDao.getIds().map { it.toSet() }
     }
 
     override suspend fun getRandom(): Photo? {
