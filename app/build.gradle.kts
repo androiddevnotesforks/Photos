@@ -82,6 +82,7 @@ android {
         abortOnError = true
         disable += "InvalidPackage"
         disable += "GradleDependency"
+        disable += "AndroidGradlePluginVersion"
     }
 }
 
