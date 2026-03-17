@@ -20,8 +20,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -32,8 +32,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -100,7 +103,7 @@ internal fun SearchScreen(
             .fillMaxWidth()
             .padding(padding)
         ) {
-            TabRow(selectedTabIndex = selectedTabIndex) {
+            SecondaryTabRow(selectedTabIndex = selectedTabIndex) {
                 uiState.photoSources.forEachIndexed { index, photoSource ->
                     Tab(
                         text = { Text(photoSource.title) },
@@ -139,10 +142,13 @@ private fun TopBar(
 ) {
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+    var initialFocusRequested by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        // TODO: Do not request focus when the screen is resumed.
-        focusRequester.requestFocus()
+    LaunchedEffect(initialFocusRequested) {
+        if (!initialFocusRequested) {
+            focusRequester.requestFocus()
+            initialFocusRequested = true
+        }
     }
 
     TopAppBar(

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.github.sikv.photos.config.ConfigProvider
 import com.github.sikv.photos.data.repository.FavoritesRepository
 import com.github.sikv.photos.data.repository.PhotosRepository
@@ -99,7 +100,7 @@ internal class SearchViewModel @Inject constructor(
                     query
                 )
             }
-        ).flow
+        ).flow.cachedIn(viewModelScope)
     }
 }
 
