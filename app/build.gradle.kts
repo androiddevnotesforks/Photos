@@ -1,5 +1,3 @@
-import org.gradle.api.Project
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.ksp)
@@ -115,16 +113,4 @@ dependencies {
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
-
-    // https://stackoverflow.com/a/60492942/7064179
-    //noinspection UseTomlInstead
-    implementation("com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava")
-
-//    testImplementation("junit:junit:4.13.2")
-//
-//    androidTestImplementation("androidx.test:runner:1.5.2")
-//    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-//    androidTestImplementation("androidx.arch.core:core-testing:2.2.0")
-//    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-//    androidTestImplementation("com.linkedin.dexmaker:dexmaker-mockito:2.28.3")
 }
