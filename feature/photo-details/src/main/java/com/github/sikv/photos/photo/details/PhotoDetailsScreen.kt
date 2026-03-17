@@ -1,10 +1,5 @@
 package com.github.sikv.photos.photo.details
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,12 +8,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -27,26 +20,20 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.sikv.photos.common.ui.ActionIconButton
 import com.github.sikv.photos.common.ui.NetworkImage
@@ -54,12 +41,10 @@ import com.github.sikv.photos.common.ui.PlaceholderImage
 import com.github.sikv.photos.common.ui.TransparentTopAppBar
 import com.github.sikv.photos.common.ui.getAttributionPlaceholderBackgroundColor
 import com.github.sikv.photos.common.ui.getAttributionPlaceholderTextColor
+import com.github.sikv.photos.compose.ui.FavoriteButton
 import com.github.sikv.photos.domain.Photo
 
-private const val imageRevealDuration = 1000
 private const val actionableContentAlpha = 0.9f
-private const val favoriteAnimationDuration = 100
-private const val unFavoriteAnimationDuration = 400
 
 @Composable
 internal fun PhotoDetailsScreen(
@@ -75,7 +60,6 @@ internal fun PhotoDetailsScreen(
     Box {
         NetworkImage(
             imageUrl = uiState.photo.getPhotoFullPreviewUrl(),
-            revealDuration = imageRevealDuration,
             loading = {
                 // Show smaller version while the full preview is loading.
                 NetworkImage(
@@ -262,66 +246,4 @@ private fun SecondaryActions(
             onToggleFavorite = onToggleFavorite
         )
     }
-}
-
-// TODO: Use FavoriteButton from compose-ui module.
-@Composable
-private fun FavoriteButton(
-    isFavorite: Boolean,
-    onToggleFavorite: () -> Unit
-) {
-    val scale = remember { Animatable(1.0f) }
-    val offsetX = remember { Animatable(0f) }
-
-    LaunchedEffect(isFavorite) {
-        if (isFavorite) {
-            scale.animateTo(
-                targetValue = 1.3f,
-                animationSpec = tween(favoriteAnimationDuration, easing = LinearEasing)
-            )
-            scale.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(favoriteAnimationDuration, easing = LinearEasing)
-            )
-        } else {
-            // Source: https://ophilia.in/creating-a-wiggle-animation-in-jetpack-compose
-            offsetX.animateTo(
-                targetValue = 0f,
-                animationSpec = keyframes {
-                    for (i in 1..8) {
-                        val x = when (i % 3) {
-                            0 -> 2f
-                            1 -> -2f
-                            else -> 0f
-                        }
-                        x at unFavoriteAnimationDuration / 10 * i with LinearEasing
-                    }
-                }
-            )
-        }
-    }
-
-    val icon =
-        if (isFavorite) R.drawable.ic_favorite_red_24dp
-        else R.drawable.ic_favorite_border_white_24dp
-
-    val tintColor =
-        if (isFavorite) colorResource(id = R.color.colorRed)
-        else LocalContentColor.current
-
-    val tint: Color by animateColorAsState(
-        targetValue = tintColor,
-        animationSpec = tween(favoriteAnimationDuration),
-        label = "Favorite button color animation",
-    )
-
-    ActionIconButton(
-        icon = icon,
-        contentDescription = R.string.content_description_toggle_favorite,
-        iconTint = tint,
-        onClick = onToggleFavorite,
-        modifier = Modifier
-            .scale(scale.value)
-            .offset(x = offsetX.value.dp, y = 0.dp)
-    )
 }
