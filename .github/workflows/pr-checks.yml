@@ -1,0 +1,38 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [ master ]
+
+concurrency:
+  group: pr-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    
+    - uses: actions/checkout@v6
+    - name: set up JDK
+      uses: actions/setup-java@v5
+      with:
+        java-version: '17'
+        distribution: 'zulu'
+
+    - name: Create dummy google-services.json
+      uses: "finnp/create-file-action@master"
+      env:
+        FILE_NAME: "app/google-services.json"
+        FILE_DATA: ${{ secrets.DUMMY_GOOGLE_SERVICES }}
+        
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Check lint
+      run: ./gradlew lintDevDebug
+
+    - name: Build debug
+      run: ./gradlew assembleDevDebug
+
