@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.cachedIn
 import com.github.sikv.photos.common.PreferencesService
 import com.github.sikv.photos.config.ConfigProvider
 import com.github.sikv.photos.data.repository.FavoritesRepository
@@ -29,7 +30,7 @@ internal class CuratedPhotosViewModel @Inject constructor(
         pagingSourceFactory = {
             CuratedPhotosPagingSource(photosRepository)
         }
-    ).flow
+    ).flow.cachedIn(viewModelScope)
 
     val favoritesFlow = favoritesRepository.getFavoritesSet()
 
