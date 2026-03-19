@@ -17,7 +17,7 @@
 }
 
 # Keep model classes
--keep class com.github.sikv.photos.domain.** { *; }
+-keep class com.github.sikv.photos.api.domain.** { *; }
 
 -dontwarn org.bouncycastle.jsse.BCSSLParameters
 -dontwarn org.bouncycastle.jsse.BCSSLSocket
